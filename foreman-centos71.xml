@@ -1,0 +1,55 @@
+<template>
+  <name>centos71</name>
+  <os>
+    <name>CentOS-7</name>
+    <version>1</version>
+    <arch>x86_64</arch>
+    <install type='iso'>
+      <iso>http://ftp.crc.dk/centos/7/isos/x86_64/CentOS-7-x86_64-Minimal-1503-01.iso</iso>
+    </install>
+    <rootpw>Miracle42</rootpw>
+  </os>
+  <description>CentOS 7.1 x86_64</description>
+  <repositories>
+    <repository name='epel-7'>
+      <url>http://download.fedoraproject.org/pub/epel/7/$basearch</url>
+      <signed>no</signed>
+    </repository>
+  </repositories>
+  <commands>
+    <command name='update'>
+echo foreman.openshift1.miracle.local > /etc/hostname
+yum -y update
+yum clean all
+sed -i '/^HWADDR/d' /etc/sysconfig/network-scripts/ifcfg-eth0
+echo -n > /etc/udev/rules.d/70-persistent-net.rules
+echo -n > /lib/udev/rules.d/75-persistent-net-generator.rules
+
+rpm -ivh http://yum.puppetlabs.com/puppetlabs-release-el-7.noarch.rpm
+yum -y install epel-release
+yum -y install http://yum.theforeman.org/releases/1.9/el7/x86_64/foreman-release.rpm
+yum -y install foreman-installer
+foreman-installer \
+  --enable-foreman-proxy \
+  --foreman-proxy-tftp=true \
+  --foreman-proxy-tftp-servername=192.168.122.160 \
+  --foreman-proxy-dhcp=true \
+  --foreman-proxy-dhcp-interface=ens3 \
+  --foreman-proxy-dhcp-gateway= \
+  --foreman-proxy-dhcp-range=" " \
+  --foreman-proxy-dhcp-nameservers="192.168.122.160" \
+  --foreman-proxy-dns=true \
+  --foreman-proxy-dns-interface=ens3 \
+  --foreman-proxy-dns-zone=openshift1.miracle.local \
+  --foreman-proxy-dns-reverse=122.168.192.in-addr.arpa \
+  --foreman-proxy-dns-forwarders=192.168.122.1 \
+  --foreman-proxy-foreman-base-url=https://foreman--noorg.openshift1.miracle.local \
+  --foreman-proxy-oauth-consumer-key=RSuKby8Woe9uMVtRvBuwxNgQLN4YaRaR \
+  --foreman-proxy-oauth-consumer-secret=9CwjXhDegZH5hpGdVCCbzrqxCC3kkfiU \
+firewall-cmd --permanent --zone=public --add-port=443/tcp;
+firewall-cmd --permanent --zone=public --add-port=80/tcp;
+firewall-cmd --reload;
+yum -y install puppet;
+    </command>
+  </commands>
+</template>
